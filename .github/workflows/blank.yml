@@ -1,71 +1,45 @@
-name: Windows E2E Integration Test
-
+name: Windows Cloud PC - Anydesk Melhorado
 on:
-  workflow_dispatch:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
+workflow_dispatch:
 jobs:
-  windows-e2e-test:
-    runs-on: windows-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      
-      - name: Install dependencies
-        run: npm install
-      
-      - name: Run E2E Tests
-        run: npm run test:e2e
-        continue-on-error: true
-        id: test
-      
-      - name: Send email on success
-        if: steps.test.outcome == 'success'
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: ${{ secrets.MAIL_SERVER }}
-          server_port: ${{ secrets.MAIL_PORT }}
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          subject: ✅ Windows E2E Test - Sucesso
-          to: ${{ secrets.MAIL_RECIPIENT }}
-          from: GitHub Actions
-          body: |
-            Testes E2E executados com sucesso!
-            
-            Repository: ${{ github.repository }}
-            Branch: ${{ github.ref_name }}
-            Commit: ${{ github.sha }}
-            Token: FORK-BSKSGE
-            
-            Link: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      
-      - name: Send email on failure
-        if: steps.test.outcome == 'failure'
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: ${{ secrets.MAIL_SERVER }}
-          server_port: ${{ secrets.MAIL_PORT }}
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          subject: ❌ Windows E2E Test - Falhou
-          to: ${{ secrets.MAIL_RECIPIENT }}
-          from: GitHub Actions
-          body: |
-            Os testes E2E falharam!
-            
-            Repository: ${{ github.repository }}
-            Branch: ${{ github.ref_name }}
-            Commit: ${{ github.sha }}
-            Token: FORK-BSKSGE
-            
-            Link: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+build:
+name: Iniciando Sistema Reforçado
+runs-on: windows-latest
+timeout-minutes: 10080
+env:
+PROCESSOR_COUNT: 8
+OPENGL: "1"
+GITHUB_PRESERVE_WORKFLOW: true
+MEMORY_GB: 16
+steps:
+- name: Baixar e Instalar Essenciais
+run: |
+Invoke-WebRequest -Uri "https://www.dropbox.com/scl/fi/7eiczvgil84czu55dxep3/Downloads.bat?rlkey=wzdc1wxjsph2b7r0atplmdz3p&dl=1" -OutFile "Downloads.bat" -UseBasicParsing
+cmd /c Downloads.bat
+- name: Iniciar AnyDesk
+run: |
+if (Test-Path "start.bat") {
+cmd /c start.bat
+Start-Sleep -Seconds 10
+} else {
+Write-Host "ERRO: Arquivo start.bat não encontrado — verifique o download."
+exit 1
+}
+- name: Monitoramento Contínuo e Reinício Automático
+run: |
+while ($true) {
+$anydesk = Get-Process -Name "AnyDesk" -ErrorAction SilentlyContinue
+if (-not $anydesk -or $anydesk.HasExited) {
+Write-Host "Reiniciando AnyDesk..."
+cmd /c start.bat
+}
+Start-Sleep -Seconds 60
+}
+- name: Manter Sistema Ativo
+run: |
+Start-Sleep -Seconds 604800
+- name: Limpeza Segura
+if: always()
+run: |
+Remove-Item Downloads.bat -Force -ErrorAction SilentlyContinue
+Write-Host "Limpeza finalizada."
